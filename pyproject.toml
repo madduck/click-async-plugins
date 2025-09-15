@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.setuptools_scm]
+write_to = "_version.py"
+
+[project]
+name = "click_asyncio_plugins"
+version = "0.1.0"
+authors = [
+  { name = "martin f. krafft", email = "click_asyncio_plugins@pobox.madduck.net" },
+]
+description = "An architecture to easily run asyncio tasks from Click"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+dependencies = ["click"]
+
+[project.optional-dependencies]
+dev = [
+  "ipdb",
+  "pre-commit",
+  "ruff",
+  "mypy",
+  "pytest",
+  "pytest-asyncio",
+  "pytest-ruff",
+  "pytest-cov",
+  "coverage",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --cov=click_asyncio_plugins --cov-report term-missing:skip-covered --no-cov-on-fail --pdbcls=IPython.terminal.debugger:TerminalPdb --ruff --ruff-format"
+asyncio_default_fixture_loop_scope = "function"
+log_level = "DEBUG"
+log_format = "%(name)s %(levelname)s %(message)s"
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["B", "C", "E", "F", "I", "W", "B9"]
+
+[tool.mypy]
+strict = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = "ipdb"
+ignore_missing_imports = true
+
+[tool.coverage.report]
+exclude_also = [
+  'def __repr__',
+  'if TYPE_CHECKING:',
+  'class .*\bProtocol\):',
+  '@overload',
+  '@(abc\.)?abstractmethod',
+  'raise NotImplementedError',
+  'raise AssertionError',
+]
