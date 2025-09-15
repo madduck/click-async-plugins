@@ -39,5 +39,11 @@ class ITC:
         finally:
             self._events[key].remove(event)
 
+    def has_subscribers(self, key: str) -> bool:
+        return len(self._events.get(key, [])) > 0
+
+    def knows_about(self, key: str) -> bool:
+        return key in self._objects
+
 
 pass_itc = click.make_pass_decorator(ITC)
