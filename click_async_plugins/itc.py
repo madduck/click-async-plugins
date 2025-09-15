@@ -16,6 +16,9 @@ class ITC:
 
     def set(self, key: str, obj: Any) -> None:
         self._objects[key] = obj
+        self.fire(key)
+
+    def fire(self, key: str) -> None:
         logger.debug(f"Notifying subscribers of update to '{key}'…")
         for event in self._events.get(key) or []:
             event.set()
