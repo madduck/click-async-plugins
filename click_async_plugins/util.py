@@ -57,9 +57,9 @@ def _get_name(plugin_factory: PluginFactory) -> str:
 
 async def setup_plugins(
     plugin_factories: list[PluginFactory],
-    *args: list[Any],
+    *args: Any,
     stack: AsyncExitStack,
-    **kwargs: dict[str, Any],
+    **kwargs: Any,
 ) -> list[PluginTask | None]:
     tasks: list[PluginTask | None] = []
     for plugin_factory in plugin_factories:
@@ -89,7 +89,7 @@ async def run_tasks(tasks: list[PluginTask | None]) -> None:
 
 
 async def run_plugins(
-    plugin_factories: list[PluginFactory], *args: list[Any], **kwargs: dict[str, Any]
+    plugin_factories: list[PluginFactory], *args: Any, **kwargs: Any
 ) -> None:
     async with AsyncExitStack() as stack:
         tasks = await setup_plugins(plugin_factories, *args, stack=stack, **kwargs)
