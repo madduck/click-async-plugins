@@ -7,12 +7,12 @@ Instead of writing [functions that make up sub-commands](https://click.palletspr
 
 ```Python
 @cli_core.plugin_command
-@click.option("--times", type=int)
-async def myplugin(times: int) -> PluginLifespan:
+@click.option("--sleep", type=click.FloatRange(min=0.01), default=1)
+async def myplugin(sleep: float) -> PluginLifespan:
 
     # code to set things up goes here
 
-    async def long_running_task(*, sleep: float = 1):
+    async def long_running_task(*, sleep: float):
         # task initialisation can happen here
 
         try:
@@ -23,7 +23,7 @@ async def myplugin(times: int) -> PluginLifespan:
             # code to clean up the task goes here
             pass
 
-    yield long_running_task(sleep=3600)
+    yield long_running_task(sleep=sleep)
 
     # code to tear things down goes here
 ```
