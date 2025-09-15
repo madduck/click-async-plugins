@@ -3,12 +3,7 @@ import logging
 
 import click
 
-from click_async_plugins import (
-    ITC,
-    PluginLifespan,
-    cli_core,
-    pass_itc,
-)
+from click_async_plugins import ITC, PluginLifespan, cli_core, pass_itc, plugin
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
@@ -43,7 +38,8 @@ async def countdown(itc: ITC, start: int = 3, sleep: float = 1) -> PluginLifespa
     logger.debug("Lifespan over for countdown")
 
 
-@cli_core.plugin_command
+# For fun, let's add_command the second plugin, instead of using a decorator:
+@plugin
 @click.option(
     "--immediately",
     is_flag=True,
@@ -59,6 +55,8 @@ async def echo(itc: ITC, immediately: bool) -> PluginLifespan:
 
     logger.debug("Lifespan over for echo")
 
+
+cli_core.add_command(echo)
 
 if __name__ == "__main__":
     import sys

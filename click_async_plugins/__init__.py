@@ -1,3 +1,4 @@
+from .command import plugin
 from .core import cli_core, runner
 from .group import plugin_group
 from .itc import ITC, pass_itc
@@ -9,6 +10,7 @@ __all__ = [
     "create_plugin_task",
     "ITC",
     "pass_itc",
+    "plugin",
     "plugin_group",
     "PluginFactory",
     "PluginLifespan",

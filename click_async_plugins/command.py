@@ -1,10 +1,11 @@
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from functools import partial, wraps
 from typing import Any
 
 import click
 
-from .typedefs import PluginFactory
+from .typedefs import PluginFactory, PluginLifespan
 
 
 class PluginCommand(click.Command):
@@ -19,3 +20,7 @@ class PluginCommand(click.Command):
             return lifespan_manager
 
         return ctx.invoke(wrapper, **ctx.params)
+
+
+def plugin(fn: Callable[..., PluginLifespan]) -> PluginCommand:
+    return click.command(cls=PluginCommand)(fn)
