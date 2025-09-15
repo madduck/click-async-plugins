@@ -145,10 +145,8 @@ async def run_tasks(tasks: dict[str, PluginTask | None]) -> None:
         logger.debug("Terminating…")
 
 
-async def run_plugins(
-    plugin_factories: list[PluginFactory], *, stack: AsyncExitStack | None = None
-) -> None:
-    async with stack or AsyncExitStack() as stack:
+async def run_plugins(plugin_factories: list[PluginFactory]) -> None:
+    async with AsyncExitStack() as stack:
         tasks = await setup_plugins(plugin_factories, stack=stack)
         await run_tasks(tasks)
 
