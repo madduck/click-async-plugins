@@ -6,10 +6,10 @@ build-backend = "hatchling.build"
 write_to = "_version.py"
 
 [project]
-name = "click_asyncio_plugins"
+name = "click-async-plugins"
 version = "0.1.0"
 authors = [
-  { name = "martin f. krafft", email = "click_asyncio_plugins@pobox.madduck.net" },
+  { name = "martin f. krafft", email = "click-async-plugins@pobox.madduck.net" },
 ]
 description = "An architecture to easily run asyncio tasks from Click"
 readme = "README.md"
@@ -37,7 +37,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --cov=click_asyncio_plugins --cov-report term-missing:skip-covered --no-cov-on-fail --pdbcls=IPython.terminal.debugger:TerminalPdb --ruff --ruff-format"
+addopts = "-ra --cov=click_async_plugins --cov-report term-missing:skip-covered --no-cov-on-fail --pdbcls=IPython.terminal.debugger:TerminalPdb --ruff --ruff-format"
 asyncio_default_fixture_loop_scope = "function"
 log_level = "DEBUG"
 log_format = "%(name)s %(levelname)s %(message)s"

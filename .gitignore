@@ -1,0 +1,7 @@
+__pycache__
+/.direnv
+.envrc
+/.mypy_cache
+/.ruff_cache
+.coverage
+.*.sw?

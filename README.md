@@ -6,7 +6,7 @@ This is a proof-of-concept of a Python [asyncio](https://docs.python.org/3/libra
 Instead of writing [functions that make up sub-commands](https://click.palletsprojects.com/en/stable/commands-and-groups/#basic-group-example), you write asynchronous "lifespan functions" (`AsyncGenerator`), like this one:
 
 ```Python
-@core.plugin_command
+@cli_core.plugin_command
 @click.option("--times", type=int)
 async def myplugin(times: int) -> PluginLifespan:
 
