@@ -20,6 +20,9 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
+[tool.setuptools.package-data]
+"click-async-plugins" = ["click_async_plugins/py.typed"]
+
 dependencies = ["click"]
 
 [project.optional-dependencies]
