@@ -19,10 +19,6 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
 ]
-
-[tool.setuptools.package-data]
-"click-async-plugins" = ["click_async_plugins/py.typed"]
-
 dependencies = ["click"]
 
 [project.optional-dependencies]
@@ -37,6 +33,9 @@ dev = [
   "pytest-cov",
   "coverage",
 ]
+
+[tool.setuptools.package-data]
+"click-async-plugins" = ["click_async_plugins/py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
