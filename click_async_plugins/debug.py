@@ -22,11 +22,6 @@ def puts(s: str) -> None:
     print(s, file=sys.stderr)
 
 
-def simulate_reload_tpdata(clictx: CliContext) -> None:
-    """Simulate event that TPData was reloaded"""
-    clictx.itc.fire("tpdata")
-
-
 def echo_newline(_: CliContext) -> None:
     """Outputs a new line"""
     puts("")
@@ -138,21 +133,24 @@ except ImportError:
 
 
 @asynccontextmanager
-async def monitor_stdin_for_debug_commands(clictx: CliContext) -> PluginLifespan:
+async def monitor_stdin_for_debug_commands(
+    clictx: CliContext, *, key_to_cmd: KeyCmdMapType | None = None
+) -> PluginLifespan:
+    key_to_cmd = key_to_cmd or {}
+
     increase_loglevel = partial(adjust_loglevel, change=-10)
     increase_loglevel.__doc__ = "Increase the logging level"
     decrease_loglevel = partial(adjust_loglevel, change=10)
     decrease_loglevel.__doc__ = "Decrease the logging level"
 
-    key_to_cmd = {
+    base_map = {
         0xA: KeyAndFunc(r"\n", echo_newline),
-        0x12: KeyAndFunc("^R", simulate_reload_tpdata),
         0x1B: KeyAndFunc("<Esc>", terminal_block),
         0x4: KeyAndFunc("^D", debug_info),
         0x2B: KeyAndFunc("+", increase_loglevel),
         0x2D: KeyAndFunc("-", decrease_loglevel),
     }
-    yield _monitor_stdin(clictx, key_to_cmd)
+    yield _monitor_stdin(clictx, base_map | key_to_cmd)
 
 
 @plugin
