@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable, Coroutine
 from contextlib import AsyncExitStack
 from dataclasses import dataclass
 from functools import partial, update_wrapper
@@ -108,3 +108,17 @@ async def run_plugins(
         await run_tasks(tasks)
 
     logger.debug("Finished.")
+
+
+async def react_to_data_update[T](
+    updates_gen: AsyncGenerator[T],
+    *,
+    callback: Callable[[T], Coroutine[None, None, None]],
+) -> None:
+    try:
+        async for update in updates_gen:
+            if update is not None:
+                await callback(update)
+
+    except asyncio.CancelledError:
+        pass
