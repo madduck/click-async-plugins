@@ -2,12 +2,24 @@ import asyncio
 import logging
 from collections.abc import Callable
 from contextlib import AsyncExitStack
+from dataclasses import dataclass
 from functools import partial, update_wrapper
 from typing import Any, Never
 
+import click
+
+from .itc import ITC
 from .typedefs import PluginFactory, PluginTask
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class CliContext:
+    itc: ITC
+
+
+pass_clictx = click.make_pass_decorator(CliContext)
 
 
 async def sleep_forever(sleep: float = 1, *, forever: bool = True) -> Never | None:

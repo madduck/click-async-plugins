@@ -62,6 +62,9 @@ DEBUG:root:Finished.
 
 I hope you get the idea.
 
+There's also a "debug" plugin included, which allows interaction with the CLI as
+its running via key presses. Hit `?` to get an overview of commands available.
+
 Looking forward to your feedback.
 
 Oh, and if someone wanted to turn this into a proper package with tests and everything, I think it could be published to pip/pypy. I need to stop shaving this yak now, though.

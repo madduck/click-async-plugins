@@ -2,16 +2,17 @@ import asyncio
 
 import click
 
+from click_async_plugins.itc import ITC
+
 from .group import plugin_group
-from .itc import ITC
 from .typedefs import PluginFactory
-from .util import run_plugins
+from .util import CliContext, run_plugins
 
 
 @plugin_group
 @click.pass_context
 def cli_core(ctx: click.Context) -> None:
-    ctx.ensure_object(ITC)
+    ctx.obj = CliContext(itc=ITC())
 
 
 @cli_core.result_callback()

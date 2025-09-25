@@ -3,7 +3,14 @@ import logging
 
 import click
 
-from click_async_plugins import ITC, PluginLifespan, cli_core, pass_itc, plugin
+from click_async_plugins import (
+    CliContext,
+    PluginLifespan,
+    cli_core,
+    pass_clictx,
+    plugin,
+)
+from click_async_plugins.debug import debug
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
@@ -22,13 +29,15 @@ logging.getLogger("asyncio").setLevel(logging.WARNING)
 @click.option(
     "--sleep", "-s", type=float, default=1, help="Sleep this long between counts"
 )
-@pass_itc
-async def countdown(itc: ITC, start: int = 3, sleep: float = 1) -> PluginLifespan:
+@pass_clictx
+async def countdown(
+    clictx: CliContext, start: int = 3, sleep: float = 1
+) -> PluginLifespan:
     async def counter(start: int, sleep: float) -> None:
         cur = start
         while cur > 0:
             logger.info(f"Counting down… {cur}")
-            itc.set("countdown", cur)
+            clictx.itc.set("countdown", cur)
             cur = await asyncio.sleep(sleep, cur - 1)
 
         logger.info("Finished counting down")
@@ -45,10 +54,10 @@ async def countdown(itc: ITC, start: int = 3, sleep: float = 1) -> PluginLifespa
     is_flag=True,
     help="Don't wait for first update but echo right upon start",
 )
-@pass_itc
-async def echo(itc: ITC, immediately: bool) -> PluginLifespan:
+@pass_clictx
+async def echo(clictx: CliContext, immediately: bool) -> PluginLifespan:
     async def reactor() -> None:
-        async for cur in itc.updates("countdown", yield_immediately=immediately):
+        async for cur in clictx.itc.updates("countdown", yield_immediately=immediately):
             logger.info(f"Countdown currently at {cur}")
 
     yield reactor()
@@ -57,6 +66,7 @@ async def echo(itc: ITC, immediately: bool) -> PluginLifespan:
 
 
 cli_core.add_command(echo)
+cli_core.add_command(debug)
 
 if __name__ == "__main__":
     import sys
