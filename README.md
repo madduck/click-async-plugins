@@ -60,7 +60,9 @@ DEBUG:root:Lifespan over for echo
 DEBUG:root:Finished.
 ```
 
-I hope you get the idea.
+I hope you get the idea. If you need more input, take a look at look at
+[tptools' tpsrv CLI](https://github.com/madduck/tptools/tree/main/tpsrv), which
+I was developing when I factored out this code.
 
 There's also a "debug" plugin included, which allows interaction with the CLI as
 its running via key presses. Hit `?` to get an overview of commands available.
