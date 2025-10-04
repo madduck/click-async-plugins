@@ -40,6 +40,7 @@ class ITC:
         yield_immediately: bool = True,
         timeout: float | None = None,
         at_most_every: float | None = None,
+        yield_for_no_value: Any | None = None,
     ) -> AsyncGenerator[Any | None]:
         at_most_every = 0 if at_most_every is None else at_most_every
 
@@ -55,7 +56,7 @@ class ITC:
         self._events[key].append(event)
 
         if yield_immediately:
-            yield self._objects.get(key)
+            yield self._objects.get(key, yield_for_no_value)
 
         try:
             timestamp = 0.0
@@ -71,7 +72,7 @@ class ITC:
                     logger.debug(f"Too early, sleeping for {waitremain:.02f}s")
                     await asyncio.sleep(waitremain)
 
-                yield self._objects.get(key)
+                yield self._objects.get(key, yield_for_no_value)
                 event.clear()
                 timestamp = time.monotonic()
 
