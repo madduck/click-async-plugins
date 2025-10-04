@@ -23,14 +23,14 @@ def puts(s: str) -> None:
     print(s, file=sys.stderr)
 
 
-def echo_newline(_: CliContext) -> None:
+def echo_newline(_: CliContext) -> str:
     """Outputs a new line"""
-    puts("")
+    return ""
 
 
-def terminal_block(_: CliContext) -> None:
+def terminal_block(_: CliContext) -> str:
     """Outputs a couple of newlines and the current time"""
-    puts(f"{'\n' * 8}The time is now: {datetime.datetime.now().isoformat(sep=' ')}\n")
+    return f"{'\n' * 8}The time is now: {datetime.datetime.now().isoformat(sep=' ')}\n"
 
 
 def _name_for_coro(coro: Coroutine[Any, Any, Any] | None) -> str:
@@ -44,22 +44,22 @@ def _name_for_coro(coro: Coroutine[Any, Any, Any] | None) -> str:
     return "(unknown)"
 
 
-def debug_info(clictx: CliContext) -> None:
+def debug_info(clictx: CliContext) -> str:
     """Prints debugging information on tasks and CliContext"""
-    puts("*** BEGIN DEBUG INFO: ***")
-    puts("Tasks:")
+    ret = "*** BEGIN DEBUG INFO: ***\n"
+    ret += "Tasks:\n"
     for i, task in enumerate(asyncio.all_tasks(asyncio.get_event_loop()), 1):
         coro = task.get_coro()
-        puts(
+        ret += (
             f"  {i:02n}  {task.get_name():32s}  "
             f"state={task._state.lower():8s}  "
-            f"coro={_name_for_coro(coro)}"
+            f"coro={_name_for_coro(coro)}\n"
         )
-    puts("CliContext:")
+    ret += "CliContext:\n"
     maxlen = max([len(k) for k in clictx.__dict__.keys()])
     for attr, value in clictx.__dict__.items():
-        puts(f"  {attr:>{maxlen}s} = {value!r}")
-    puts("*** END DEBUG INFO: ***")
+        ret += f"  {attr:>{maxlen}s} = {value!r}\n"
+    return ret + "*** END DEBUG INFO: ***"
 
 
 _LOGLEVELS = {
@@ -71,21 +71,21 @@ _LOGLEVELS = {
 }
 
 
-def adjust_loglevel(_: CliContext, change: int) -> None:
+def adjust_loglevel(_: CliContext, change: int) -> str | None:
     """Adjusts the log level"""
     rootlogger = logging.getLogger()
     newlevel = rootlogger.getEffectiveLevel() + change
     if newlevel < logging.DEBUG or newlevel > logging.CRITICAL:
-        return
+        return None
 
     rootlogger.setLevel(newlevel)
-    puts(f"Log level now at {_LOGLEVELS[logger.getEffectiveLevel()]}")
+    return f"Log level now at {_LOGLEVELS[logger.getEffectiveLevel()]}"
 
 
 @dataclass
 class KeyAndFunc[ContextT: CliContext]:
     key: str
-    func: Callable[[ContextT], None]
+    func: Callable[[ContextT], str | None]
 
 
 type KeyCmdMapType[ContextT: CliContext] = dict[int, KeyAndFunc[ContextT]]
@@ -93,11 +93,11 @@ type KeyCmdMapType[ContextT: CliContext] = dict[int, KeyAndFunc[ContextT]]
 
 def print_help[ContextT: CliContext](
     _: ContextT, key_to_cmd: KeyCmdMapType[ContextT]
-) -> None:
-    puts("Keys I know about for debugging:")
+) -> str:
+    ret = "Keys I know about for debugging:\n"
     for keyfunc in key_to_cmd.values():
-        puts(f"  {keyfunc.key:5s} {keyfunc.func.__doc__}")
-    puts("  ?     Print this message")
+        ret += f"  {keyfunc.key:5s} {keyfunc.func.__doc__}\n"
+    return ret + "  ?     Print this message"
 
 
 try:
@@ -106,7 +106,10 @@ try:
     import tty
 
     async def _monitor_stdin[ContextT: CliContext](  # pyright: ignore[reportRedeclaration]
-        clictx: ContextT, key_to_cmd: KeyCmdMapType[ContextT]
+        clictx: ContextT,
+        key_to_cmd: KeyCmdMapType[ContextT],
+        *,
+        puts: Callable[[str], Any] = puts,
     ) -> None:
         fd = sys.stdin.fileno()
         termios_saved = termios.tcgetattr(fd)
@@ -125,12 +128,13 @@ try:
                     continue
 
                 if (key := ord(ch)) == 0x3F:
-                    print_help(clictx, key_to_cmd)
+                    puts(print_help(clictx, key_to_cmd))
 
                 elif (keyfunc := key_to_cmd.get(key)) is not None and callable(
                     keyfunc.func
                 ):
-                    keyfunc.func(clictx)
+                    if (ret := keyfunc.func(clictx)) is not None:
+                        puts(ret)
 
                 else:
                     logger.debug(f"Ignoring character 0x{key:02x} on stdin")
@@ -143,16 +147,22 @@ try:
 except ImportError:
 
     async def _monitor_stdin[ContextT: CliContext](
-        clictx: ContextT, key_to_cmd: KeyCmdMapType[ContextT]
+        clictx: ContextT,
+        key_to_cmd: KeyCmdMapType[ContextT],
+        *,
+        puts: Callable[[str], Any] = puts,
     ) -> None:
-        _ = clictx, key_to_cmd
+        _ = clictx, key_to_cmd, puts
         logger.warning("The 'debug' plugin does not work on this platform")
         return None
 
 
 @asynccontextmanager
 async def monitor_stdin_for_debug_commands[ContextT: CliContext](
-    clictx: CliContext, *, key_to_cmd: KeyCmdMapType[ContextT] | None = None
+    clictx: CliContext,
+    *,
+    key_to_cmd: KeyCmdMapType[ContextT] | None = None,
+    puts: Callable[[str], Any] = puts,
 ) -> PluginLifespan:
     key_to_cmd = key_to_cmd or {}
 
@@ -169,7 +179,7 @@ async def monitor_stdin_for_debug_commands[ContextT: CliContext](
         0x2D: KeyAndFunc("-", decrease_loglevel),
         **key_to_cmd,
     }
-    yield _monitor_stdin(clictx, map)
+    yield _monitor_stdin(clictx, map, puts=puts)
 
 
 @plugin
