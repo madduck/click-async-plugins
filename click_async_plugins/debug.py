@@ -105,7 +105,7 @@ try:
     import termios
     import tty
 
-    async def _monitor_stdin[ContextT: CliContext](
+    async def _monitor_stdin[ContextT: CliContext](  # pyright: ignore[reportRedeclaration]
         clictx: ContextT, key_to_cmd: KeyCmdMapType[ContextT]
     ) -> None:
         fd = sys.stdin.fileno()
