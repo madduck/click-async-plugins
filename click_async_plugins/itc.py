@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from collections import defaultdict
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -38,10 +39,17 @@ class ITC:
         *,
         yield_immediately: bool = True,
         timeout: float | None = None,
+        at_most_every: float | None = None,
     ) -> AsyncGenerator[Any | None]:
+        at_most_every = 0 if at_most_every is None else at_most_every
+
         if timeout is not None and timeout <= 0:
             logger.warning("Updates timeout <= 0, disabling timeout…")
             timeout = None
+
+        if timeout is not None and timeout < at_most_every:
+            logger.warning("timeout < at_most_every makes no sense, adjusting…")
+            timeout = at_most_every
 
         event = asyncio.Event()
         self._events[key].append(event)
@@ -50,6 +58,7 @@ class ITC:
             yield self._objects.get(key)
 
         try:
+            timestamp = 0.0
             while True:
                 logger.debug(f"Waiting for update to '{key}'…")
                 try:
@@ -58,8 +67,13 @@ class ITC:
                 except TimeoutError:
                     logger.debug(f"Timeout after {timeout}s")
 
+                if (waitremain := timestamp + at_most_every - time.monotonic()) > 0:
+                    logger.debug(f"Too early, sleeping for {waitremain:.02f}s")
+                    await asyncio.sleep(waitremain)
+
                 yield self._objects.get(key)
                 event.clear()
+                timestamp = time.monotonic()
 
         finally:
             self._events[key].remove(event)
