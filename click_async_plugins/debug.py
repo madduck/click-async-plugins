@@ -83,15 +83,17 @@ def adjust_loglevel(_: CliContext, change: int) -> None:
 
 
 @dataclass
-class KeyAndFunc:
+class KeyAndFunc[ContextT: CliContext]:
     key: str
-    func: Callable[[CliContext], None]
+    func: Callable[[ContextT], None]
 
 
-type KeyCmdMapType = dict[int, KeyAndFunc]
+type KeyCmdMapType[ContextT: CliContext] = dict[int, KeyAndFunc[ContextT]]
 
 
-def print_help(_: CliContext, key_to_cmd: KeyCmdMapType) -> None:
+def print_help[ContextT: CliContext](
+    _: ContextT, key_to_cmd: KeyCmdMapType[ContextT]
+) -> None:
     puts("Keys I know about for debugging:")
     for keyfunc in key_to_cmd.values():
         puts(f"  {keyfunc.key:5s} {keyfunc.func.__doc__}")
@@ -103,7 +105,9 @@ try:
     import termios
     import tty
 
-    async def _monitor_stdin(clictx: CliContext, key_to_cmd: KeyCmdMapType) -> None:
+    async def _monitor_stdin[ContextT: CliContext](
+        clictx: ContextT, key_to_cmd: KeyCmdMapType[ContextT]
+    ) -> None:
         fd = sys.stdin.fileno()
         termios_saved = termios.tcgetattr(fd)
         fnctl_flags = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
@@ -138,15 +142,17 @@ try:
 
 except ImportError:
 
-    async def _monitor_stdin(clictx: CliContext, key_to_cmd: KeyCmdMapType) -> None:
+    async def _monitor_stdin[ContextT: CliContext](
+        clictx: ContextT, key_to_cmd: KeyCmdMapType[ContextT]
+    ) -> None:
         _ = clictx, key_to_cmd
         logger.warning("The 'debug' plugin does not work on this platform")
         return None
 
 
 @asynccontextmanager
-async def monitor_stdin_for_debug_commands(
-    clictx: CliContext, *, key_to_cmd: KeyCmdMapType | None = None
+async def monitor_stdin_for_debug_commands[ContextT: CliContext](
+    clictx: CliContext, *, key_to_cmd: KeyCmdMapType[ContextT] | None = None
 ) -> PluginLifespan:
     key_to_cmd = key_to_cmd or {}
 
@@ -155,14 +161,15 @@ async def monitor_stdin_for_debug_commands(
     decrease_loglevel = partial(adjust_loglevel, change=10)
     decrease_loglevel.__doc__ = "Decrease the logging level"
 
-    base_map = {
+    map = {
         0xA: KeyAndFunc(r"\n", echo_newline),
         0x1B: KeyAndFunc("<Esc>", terminal_block),
         0x4: KeyAndFunc("^D", debug_info),
         0x2B: KeyAndFunc("+", increase_loglevel),
         0x2D: KeyAndFunc("-", decrease_loglevel),
+        **key_to_cmd,
     }
-    yield _monitor_stdin(clictx, base_map | key_to_cmd)
+    yield _monitor_stdin(clictx, map)
 
 
 @plugin
