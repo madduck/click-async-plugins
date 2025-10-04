@@ -10,6 +10,7 @@ from collections.abc import Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from functools import partial
+from typing import Any, Coroutine, cast
 
 from click_async_plugins.util import CliContext
 
@@ -32,6 +33,17 @@ def terminal_block(_: CliContext) -> None:
     puts(f"{'\n' * 8}The time is now: {datetime.datetime.now().isoformat(sep=' ')}\n")
 
 
+def _name_for_coro(coro: Coroutine[Any, Any, Any] | None) -> str:
+    if coro is None:
+        return str(None)
+
+    for attr in ("__qualname__", "__name__"):
+        if (ret := getattr(coro, attr, None)) is not None:
+            return cast(str, ret)
+
+    return "(unknown)"
+
+
 def debug_info(clictx: CliContext) -> None:
     """Prints debugging information on tasks and CliContext"""
     puts("*** BEGIN DEBUG INFO: ***")
@@ -41,7 +53,7 @@ def debug_info(clictx: CliContext) -> None:
         puts(
             f"  {i:02n}  {task.get_name():32s}  "
             f"state={task._state.lower():8s}  "
-            f"coro={None if coro is None else coro.__qualname__}"
+            f"coro={_name_for_coro(coro)}"
         )
     puts("CliContext:")
     maxlen = max([len(k) for k in clictx.__dict__.keys()])
