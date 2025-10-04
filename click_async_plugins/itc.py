@@ -33,8 +33,16 @@ class ITC:
             event.set()
 
     async def updates(
-        self, key: str, *, yield_immediately: bool = True
+        self,
+        key: str,
+        *,
+        yield_immediately: bool = True,
+        timeout: float | None = None,
     ) -> AsyncGenerator[Any | None]:
+        if timeout is not None and timeout <= 0:
+            logger.warning("Updates timeout <= 0, disabling timeout…")
+            timeout = None
+
         event = asyncio.Event()
         self._events[key].append(event)
 
@@ -44,7 +52,12 @@ class ITC:
         try:
             while True:
                 logger.debug(f"Waiting for update to '{key}'…")
-                await event.wait()
+                try:
+                    async with asyncio.timeout(timeout):
+                        await event.wait()
+                except TimeoutError:
+                    logger.debug(f"Timeout after {timeout}s")
+
                 yield self._objects.get(key)
                 event.clear()
 
