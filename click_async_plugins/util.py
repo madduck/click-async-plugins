@@ -112,10 +112,11 @@ async def run_plugins(
     logger.debug("Finished.")
 
 
+type UpdateCallbackType[T] = Callable[[T], Coroutine[None, None, None]]
+
+
 async def react_to_data_update[T](
-    updates_gen: AsyncGenerator[T],
-    *,
-    callback: Callable[[T], Coroutine[None, None, None]],
+    updates_gen: AsyncGenerator[T], *, callback: UpdateCallbackType[T]
 ) -> None:
     try:
         async for update in updates_gen:
