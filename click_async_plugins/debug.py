@@ -6,7 +6,7 @@ import datetime
 import logging
 import os
 import sys
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from functools import partial
@@ -100,17 +100,12 @@ def print_help[ContextT: CliContext](
     return ret + "  ?     Print this message"
 
 
-try:
-    import fcntl
-    import termios
-    import tty
+async def getch() -> AsyncGenerator[str]:
+    try:
+        import fcntl
+        import termios
+        import tty
 
-    async def _monitor_stdin[ContextT: CliContext](  # pyright: ignore[reportRedeclaration]
-        clictx: ContextT,
-        key_to_cmd: KeyCmdMapType[ContextT],
-        *,
-        puts: Callable[[str], Any] = puts,
-    ) -> None:
         fd = sys.stdin.fileno()
         termios_saved = termios.tcgetattr(fd)
         fnctl_flags = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
@@ -121,38 +116,58 @@ try:
             fcntl.fcntl(sys.stdin, fcntl.F_SETFL, fnctl_flags | os.O_NONBLOCK)
 
             while True:
-                ch = sys.stdin.read(1)
+                yield sys.stdin.read(1)
 
-                if len(ch) == 0:
-                    await asyncio.sleep(0.1)
-                    continue
-
-                if (key := ord(ch)) == 0x3F:
-                    puts(print_help(clictx, key_to_cmd))
-
-                elif (keyfunc := key_to_cmd.get(key)) is not None and callable(
-                    keyfunc.func
-                ):
-                    if (ret := keyfunc.func(clictx)) is not None:
-                        puts(ret)
-
-                else:
-                    logger.debug(f"Ignoring character 0x{key:02x} on stdin")
+        except asyncio.CancelledError:
+            pass
 
         finally:
             logger.debug("Restoring stdin")
             termios.tcsetattr(fd, termios.TCSADRAIN, termios_saved)
             fcntl.fcntl(sys.stdin, fcntl.F_SETFL, fnctl_flags)
 
-except ImportError:
+    except ImportError:
+        pass
 
-    async def _monitor_stdin[ContextT: CliContext](
-        clictx: ContextT,
-        key_to_cmd: KeyCmdMapType[ContextT],
-        *,
-        puts: Callable[[str], Any] = puts,
-    ) -> None:
-        _ = clictx, key_to_cmd, puts
+    try:
+        import msvcrt
+
+        while True:
+            if msvcrt.kbhit():  # type: ignore[attr-defined]
+                yield msvcrt.getch()  # type: ignore[attr-defined]
+
+            else:
+                await asyncio.sleep(0.1)
+
+    except ImportError as exc:
+        raise NotImplementedError from exc
+
+
+async def _monitor_stdin[ContextT: CliContext](
+    clictx: ContextT,
+    key_to_cmd: KeyCmdMapType[ContextT],
+    *,
+    puts: Callable[[str], Any] = puts,
+) -> None:
+    try:
+        async for ch in getch():
+            if len(ch) == 0:
+                await asyncio.sleep(0.1)
+                continue
+
+            if (key := ord(ch)) == 0x3F:
+                puts(print_help(clictx, key_to_cmd))
+
+            elif (keyfunc := key_to_cmd.get(key)) is not None and callable(
+                keyfunc.func
+            ):
+                if (ret := keyfunc.func(clictx)) is not None:
+                    puts(ret)
+
+            else:
+                logger.debug(f"Ignoring character 0x{key:02x} on stdin")
+
+    except NotImplementedError:
         logger.warning("The 'debug' plugin does not work on this platform")
         return None
 
