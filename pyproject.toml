@@ -7,7 +7,7 @@ write_to = "_version.py"
 
 [project]
 name = "click-async-plugins"
-version = "0.7.0"
+version = "0.7.1"
 authors = [
   { name = "martin f. krafft", email = "click-async-plugins@pobox.madduck.net" },
 ]

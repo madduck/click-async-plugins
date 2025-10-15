@@ -161,6 +161,7 @@ async def _monitor_stdin[ContextT: CliContext](
             elif (keyfunc := key_to_cmd.get(key)) is not None and callable(
                 keyfunc.func
             ):
+                # TODO: enable async functions
                 if (ret := keyfunc.func(clictx)) is not None:
                     puts(ret)
 
@@ -188,6 +189,7 @@ async def monitor_stdin_for_debug_commands[ContextT: CliContext](
 
     map = {
         0xA: KeyAndFunc(r"\n", echo_newline),
+        0xD: KeyAndFunc(r"\n", echo_newline),
         0x1B: KeyAndFunc("<Esc>", terminal_block),
         0x4: KeyAndFunc("^D", debug_info),
         0x2B: KeyAndFunc("+", increase_loglevel),
