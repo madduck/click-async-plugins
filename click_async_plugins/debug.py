@@ -79,7 +79,7 @@ def adjust_loglevel(_: CliContext, change: int) -> str | None:
         return None
 
     rootlogger.setLevel(newlevel)
-    return f"Log level now at {_LOGLEVELS[logger.getEffectiveLevel()]}"
+    return f"Log level now at {_LOGLEVELS[rootlogger.getEffectiveLevel()]}"
 
 
 @dataclass
