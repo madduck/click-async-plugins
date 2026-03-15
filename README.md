@@ -1,3 +1,5 @@
+[![Style and unit tests badge](https://github.com/madduck/click-async-plugins/actions/workflows/python-package.yml/badge.svg)](https://github.com/madduck/click-async-plugins/actions/workflows/python-package.yml)
+
 # click-async-plugins
 
 This is a proof-of-concept of a Python [asyncio](https://docs.python.org/3/library/asyncio.html) plugin architecture based on
