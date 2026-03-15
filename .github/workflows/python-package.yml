@@ -7,7 +7,7 @@ on:
     branches: ["main"]
 
 jobs:
-  test:
+  test-and-build:
     name: Setup test environment
     runs-on: ubuntu-latest
     strategy:
@@ -66,7 +66,7 @@ jobs:
     name: Publish module to PyPI
     # if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
     needs:
-      - build
+      - test-and-build
     runs-on: ubuntu-latest
     environment: pypi
     # name: pypi
