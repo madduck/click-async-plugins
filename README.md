@@ -73,4 +73,4 @@ Looking forward to your feedback.
 
 Oh, and if someone wanted to turn this into a proper package with tests and everything, I think it could be published to pip/pypy. I need to stop shaving this yak now, though.
 
-© 2025 martin f. krafft <<click-async-plugins@pobox.madduck.net>>
+© 2025–26 martin f. krafft <<click-async-plugins@pobox.madduck.net>>
