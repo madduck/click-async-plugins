@@ -59,7 +59,7 @@ jobs:
       - name: Store the distribution packages
         uses: actions/upload-artifact@v5
         with:
-          name: dist-{{ matrix.python-version }}
+          name: dist-${{ matrix.python-version }}
           path: dist/
 
   publish-to-pypi:
