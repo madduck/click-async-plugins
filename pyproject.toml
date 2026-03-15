@@ -1,13 +1,16 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
-write_to = "_version.py"
+[tool.hatch.build.hooks.vcs]
+version-file = "_version.py"
+
+[tool.hatch.version]
+source = "vcs"
 
 [project]
 name = "click-async-plugins"
-version = "0.7.3"
+dynamic = ["version"]
 authors = [
   { name = "martin f. krafft", email = "click-async-plugins@pobox.madduck.net" },
 ]
