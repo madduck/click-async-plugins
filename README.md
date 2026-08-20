@@ -14,7 +14,7 @@ async def myplugin(sleep: float) -> PluginLifespan:
 
     # code to set things up goes here
 
-    async def long_running_task(*, sleep: float):
+    async def long_running_task(*, sleep: float) -> None:
         # task initialisation can happen here
 
         try:
