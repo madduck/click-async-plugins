@@ -8,6 +8,9 @@ version-file = "_version.py"
 [tool.hatch.version]
 source = "vcs"
 
+[tool.hatch.build.targets.sdist]
+exclude = [".direnv", ".gitignore", ".github"]
+
 [project]
 name = "click-async-plugins"
 dynamic = ["version"]
