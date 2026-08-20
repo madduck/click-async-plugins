@@ -71,4 +71,8 @@ its running via key presses. Hit `?` to get an overview of commands available.
 
 Looking forward to your feedback.
 
+## TODO
+
+Test coverage… yeah, there's none right now :(
+
 © 2025–26 martin f. krafft <<click-async-plugins@pobox.madduck.net>>
