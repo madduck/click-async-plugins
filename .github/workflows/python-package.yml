@@ -46,10 +46,6 @@ jobs:
           python_version: ${{ matrix.python-version }}
           requirements: ". .[dev]"
 
-      - name: Upgrade pip
-        run: |
-          python3 -m pip install --upgrade pip
-
       - name: Install pypa/build
         run: python3 -m pip install build --user
 
