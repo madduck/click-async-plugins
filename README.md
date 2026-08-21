@@ -1,4 +1,4 @@
-[![Style and unit tests badge](https://github.com/madduck/click-async-plugins/actions/workflows/python-package.yml/badge.svg)](https://github.com/madduck/click-async-plugins/actions/workflows/python-package.yml)
+[![Style and unit tests badge](https://github.com/madduck/click-async-plugins/actions/workflows/0-testing.yml/badge.svg)](https://github.com/madduck/click-async-plugins/actions/workflows/0-testing.yml)
 
 # click-async-plugins
 
