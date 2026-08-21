@@ -36,6 +36,7 @@ jobs:
   publish-to-pypi:
     name: Upload to PyPi
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: build
 
     environment: pypi
@@ -55,8 +56,7 @@ jobs:
 
   github-release:
     name: Create GitHub Release
-    needs:
-      - publish-to-pypi
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
