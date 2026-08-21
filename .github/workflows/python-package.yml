@@ -1,4 +1,4 @@
-name: Style and unit tests
+name: Test and publish to PyPi
 
 on:
   push:
