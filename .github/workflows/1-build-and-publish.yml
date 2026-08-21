@@ -33,7 +33,7 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-  upload-to-pypi:
+  publish-to-pypi:
     name: Upload to PyPi
     runs-on: ubuntu-latest
     needs: build
