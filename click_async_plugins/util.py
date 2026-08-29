@@ -11,6 +11,12 @@ import click
 from .itc import ITC
 from .typedefs import PluginFactory, PluginTask
 
+try:
+    from inspect import iscoroutine
+except ImportError:
+    # fall back to legacy implementation
+    from asyncio import iscoroutine  # type: ignore[assignment]
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +47,7 @@ def create_plugin_task[T](
 ) -> asyncio.Task[T]:
     async def task_wrapper() -> None:
         try:
-            if asyncio.iscoroutine(task.task):
+            if iscoroutine(task.task):
                 logger.debug(f"Scheduling task for '{task.name}'")
                 await task.task
 
