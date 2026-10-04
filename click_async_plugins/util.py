@@ -8,6 +8,7 @@ from typing import Any, Never
 
 import click
 
+from .dependencies import resolve_dependencies
 from .itc import ITC
 from .typedefs import PluginFactory, PluginTask
 
@@ -111,6 +112,9 @@ async def run_tasks(tasks: list[TaskWithName]) -> None:
 async def run_plugins(
     plugin_factories: list[PluginFactory], *args: Any, **kwargs: Any
 ) -> None:
+    # Fail early, before anything is set up, if dependencies cannot be met
+    plugin_factories = resolve_dependencies(plugin_factories)
+
     async with AsyncExitStack() as stack:
         tasks = await setup_plugins(plugin_factories, *args, stack=stack, **kwargs)
         await run_tasks(tasks)

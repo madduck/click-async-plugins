@@ -71,6 +71,41 @@ its running via key presses. Hit `?` to get an overview of commands available.
 
 Looking forward to your feedback.
 
+## Plugin dependencies
+
+A plugin can declare that it needs other plugins to be active, using the
+`depends_on` decorator. Put it underneath `@plugin`/`@plugin_command`, just like
+you would `click.option`:
+
+```Python
+from click_async_plugins import depends_on
+
+
+@cli_core.plugin_command
+@depends_on("countdown")
+@pass_clictx
+async def echo(clictx: CliContext) -> PluginLifespan: ...
+```
+
+Dependencies are given either as the plugin's command name (as typed on the
+command line), or as the plugin command object itself, e.g.
+`@depends_on(countdown)`; you can mix and match, and use the decorator more than
+once.
+
+When the plugins are run:
+
+- The declared dependencies must have been specified on the command line,
+  otherwise a usage error is raised before anything is set up;
+- The order on the command line does not matter: dependencies are always set up
+  *before* the plugins that need them, and (as teardown happens in reverse) torn
+  down *after* them. Plugins that are not constrained by a dependency keep their
+  command line order;
+- Circular dependencies are reported as a usage error, too.
+
+Both errors are raised as `PluginDependencyError`, a `click.UsageError`. If you
+call `run_plugins` yourself, dependencies are resolved there; the logic is
+available separately as `resolve_dependencies`.
+
 ## TODO
 
 Test coverage… yeah, there's none right now :(

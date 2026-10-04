@@ -7,6 +7,7 @@ from click_async_plugins import (
     CliContext,
     PluginLifespan,
     cli_core,
+    depends_on,
     pass_clictx,
     plugin,
 )
@@ -54,6 +55,7 @@ async def countdown(
     is_flag=True,
     help="Don't wait for first update but echo right upon start",
 )
+@depends_on(countdown)
 @pass_clictx
 async def echo(clictx: CliContext, immediately: bool) -> PluginLifespan:
     async def reactor() -> None:

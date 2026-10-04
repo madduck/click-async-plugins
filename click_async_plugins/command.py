@@ -5,6 +5,7 @@ from typing import Any
 
 import click
 
+from .dependencies import get_dependencies, mark_plugin_factory
 from .typedefs import PluginFactory, PluginLifespan
 
 
@@ -17,6 +18,11 @@ class PluginCommand(click.Command):
         def wrapper(*args: list[Any], **kwargs: dict[str, Any]) -> PluginFactory:
             lifespan_manager = asynccontextmanager(partial(callback, *args, **kwargs))
             lifespan_manager.__name__ = callback.__name__
+            mark_plugin_factory(
+                lifespan_manager,
+                name=self.name,
+                requires=get_dependencies(callback),
+            )
             return lifespan_manager
 
         return ctx.invoke(wrapper, **ctx.params)
