@@ -182,3 +182,28 @@ async def test_updates_at_most_every_throttles(
     assert "Too early, sleeping for" in caplog.text
 
     await gen.aclose()
+
+
+@pytest.mark.asyncio
+async def test_updates_unsubscribes_after_immediate_value_only(itc: ITC) -> None:
+    gen = itc.updates("key")
+    await anext(gen)
+    assert itc.has_subscribers("key")
+    await gen.aclose()
+    assert not itc.has_subscribers("key")
+
+
+@pytest.mark.asyncio
+async def test_updates_does_not_lose_update_during_consumer_work(itc: ITC) -> None:
+    gen = itc.updates("key", yield_immediately=False)
+
+    first = asyncio.ensure_future(anext(gen))
+    await asyncio.sleep(0)
+    itc.set("key", 1)
+    assert await asyncio.wait_for(first, 1) == 1
+
+    # the consumer is busy; the next update arrives before it asks again
+    itc.set("key", 2)
+
+    assert await asyncio.wait_for(anext(gen), 1) == 2
+    await gen.aclose()

@@ -58,10 +58,10 @@ class ITC:
         event = asyncio.Event()
         self._events[key].append(event)
 
-        if yield_immediately:
-            yield self._objects.get(key, yield_for_no_value)
-
         try:
+            if yield_immediately:
+                yield self._objects.get(key, yield_for_no_value)
+
             timestamp = 0.0
             while True:
                 logger.debug(f"Waiting for update to '{key}'…")
@@ -75,8 +75,13 @@ class ITC:
                     logger.debug(f"Too early, sleeping for {waitremain:.02f}s")
                     await asyncio.sleep(waitremain)
 
-                yield self._objects.get(key, yield_for_no_value)
+                # Clear the event in the same synchronous step as reading the
+                # value, and *before* yielding: updates that arrive while the
+                # consumer is busy will then trigger the next iteration
+                # instead of being wiped out.
                 event.clear()
+                value = self._objects.get(key, yield_for_no_value)
+                yield value
                 timestamp = time.monotonic()
 
         finally:
