@@ -62,7 +62,7 @@ def debug_info(clictx: CliContext) -> str:
     ret += "CliContext:\n"
     maxlen = max([len(k) for k in clictx.__dict__.keys()])
     for attr, value in clictx.__dict__.items():
-        ret += f"  {attr:>{maxlen}s} = {value!r}\n"
+        ret += f"  {attr:>{maxlen}s} = {value!r} (id:{id(value)})\n"
     return ret + "*** END DEBUG INFO: ***"
 
 
