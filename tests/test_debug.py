@@ -21,6 +21,7 @@ from click_async_plugins.debug import (
     debug_info,
     echo_newline,
     getch,
+    interrupt,
     monitor_stdin_for_debug_commands,
     print_help,
     puts,
@@ -50,6 +51,11 @@ def test_puts_writes_to_stderr(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_echo_newline(clictx: CliContext) -> None:
     assert echo_newline(clictx) == ""
+
+
+def test_interrupt(clictx: CliContext) -> None:
+    with pytest.raises(KeyboardInterrupt):
+        interrupt(clictx)
 
 
 def test_terminal_block(clictx: CliContext) -> None:

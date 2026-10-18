@@ -10,7 +10,7 @@ from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Coroutine, cast
+from typing import Any, Coroutine, Never, cast
 
 from click_async_plugins.util import CliContext
 
@@ -42,6 +42,10 @@ def _name_for_coro(coro: Coroutine[Any, Any, Any] | None) -> str:
             return cast(str, ret)
 
     return "(unknown)"
+
+
+def interrupt(clictx: CliContext) -> Never:
+    raise KeyboardInterrupt
 
 
 def debug_info(clictx: CliContext) -> str:
@@ -188,6 +192,7 @@ async def monitor_stdin_for_debug_commands[ContextT: CliContext](
     decrease_loglevel.__doc__ = "Decrease the logging level"
 
     map = {
+        0x3: KeyAndFunc(r"^C", interrupt),
         0xA: KeyAndFunc(r"\n", echo_newline),
         0xD: KeyAndFunc(r"\n", echo_newline),
         0x1B: KeyAndFunc("<Esc>", terminal_block),
