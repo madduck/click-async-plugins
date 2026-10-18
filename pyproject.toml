@@ -38,6 +38,7 @@ dev = [
   "pytest-ruff",
   "pytest-cov",
   "coverage",
+  "bandit>=1.9.4",
 ]
 
 [tool.pytest.ini_options]
@@ -71,3 +72,9 @@ exclude_also = [
   'raise NotImplementedError',
   'raise AssertionError',
 ]
+
+[tool.bandit]
+exclude_dirs = [".venv"]
+
+[tool.bandit.assert_used]
+skips = ["*/tests/test_*.py"]

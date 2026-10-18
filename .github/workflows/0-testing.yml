@@ -36,3 +36,6 @@ jobs:
 
       - name: Mypy Check
         run: uv run mypy .
+
+      - name: Bandit check
+        run: uv run bandit -c pyproject.toml -r .
