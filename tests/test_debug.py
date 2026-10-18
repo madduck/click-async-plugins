@@ -4,8 +4,8 @@ import os
 import pty
 import sys
 import types
-from collections.abc import AsyncGenerator, Iterator
-from typing import Any
+from collections.abc import AsyncGenerator, Coroutine, Iterator
+from typing import Any, cast
 
 import pytest
 from click.testing import CliRunner
@@ -85,7 +85,7 @@ def test_name_for_coro_unknown() -> None:
 
 def test_name_for_coro_falls_back_to_name() -> None:
     # an object with __name__ but no __qualname__
-    obj = types.SimpleNamespace(__name__="named")
+    obj = cast(Coroutine[Any, Any, Any], types.SimpleNamespace(__name__="named"))
     assert _name_for_coro(obj) == "named"
 
 
