@@ -9,7 +9,7 @@ version-file = "_version.py"
 source = "vcs"
 
 [tool.hatch.build.targets.sdist]
-exclude = [".direnv", ".gitignore", ".github"]
+exclude = [".direnv", ".venv", ".gitignore", ".github", "uv.lock"]
 
 [project]
 name = "click-async-plugins"
@@ -27,7 +27,7 @@ classifiers = [
 ]
 dependencies = ["click"]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
   "ipdb",
   "pre-commit",
@@ -39,9 +39,6 @@ dev = [
   "pytest-cov",
   "coverage",
 ]
-
-[tool.setuptools.package-data]
-"click-async-plugins" = ["click_async_plugins/py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

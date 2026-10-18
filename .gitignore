@@ -1,6 +1,6 @@
 __pycache__
 /.direnv
-.envrc
+/.venv
 /.mypy_cache
 /.ruff_cache
 .coverage

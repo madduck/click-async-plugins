@@ -110,18 +110,22 @@ available separately as `resolve_dependencies`.
 To contribute, please ensure you have the appropriate dependencies installed:
 
 ```sh
-pip install -e .[dev]
+uv sync
 ```
+
+uv creates a `.venv` in the project root and installs the project together with
+the `dev` dependency group. Prefix commands with `uv run` to use it, for example
+`uv run pytest`.
 
 and then install the Git pre-commit hooks that ensure that any commits conform
 with the coding-style used by this project.
 
 ```sh
-pre-commit install
+uv run pre-commit install
 ```
 
 All code is 100% test-covered, and all contributions are expected to keep this up.
-Use `pytest` to run the test suite.
+Use `uv run pytest` to run the test suite.
 
 Note that all code is typed, and typing is part of test-coverage.
 
