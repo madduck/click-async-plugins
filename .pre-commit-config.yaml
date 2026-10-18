@@ -1,23 +1,20 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
-  - repo: local
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.1
     hooks:
       - id: mypy
-        name: mypy
-        entry: uv run mypy .
-        language: system
-        types_or: [python, pyi]
-        pass_filenames: false
+        additional_dependencies:
+          - click
+          - pytest
+          - pytest-asyncio
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.4
+    hooks:
       - id: ruff-check
-        name: ruff check
-        entry: uv run ruff check --show-fixes
-        language: system
-        types_or: [python, pyi]
+        args: [--show-fixes]
       - id: ruff-format
-        name: ruff format
-        entry: uv run ruff format --diff
-        language: system
-        types_or: [python, pyi]
+        args: [--diff]
 
 fail_fast: true
