@@ -207,3 +207,117 @@ async def test_updates_does_not_lose_update_during_consumer_work(itc: ITC) -> No
 
     assert await asyncio.wait_for(anext(gen), 1) == 2
     await gen.aclose()
+
+
+def test_set_logs_caller_and_value(itc: ITC, caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level(logging.DEBUG)
+    itc.set("key", 7)
+    record = next(r for r in caplog.records if r.message.startswith("set("))
+    assert "set('key', 7) called from" in record.message
+    assert "test_itc.py" in record.message
+    assert "test_set_logs_caller_and_value" in record.message
+
+
+def test_get_logs_caller_and_value(itc: ITC, caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level(logging.DEBUG)
+    itc.set("key", 7)
+    caplog.clear()
+    assert itc.get("key") == 7
+    record = next(r for r in caplog.records if r.message.startswith("get("))
+    assert "get('key') -> 7 called from" in record.message
+    assert "test_get_logs_caller_and_value" in record.message
+
+
+def test_fire_logs_caller(itc: ITC, caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level(logging.DEBUG)
+    itc.fire("key")
+    record = next(r for r in caplog.records if r.message.startswith("fire("))
+    assert "fire('key') called from" in record.message
+    assert "test_fire_logs_caller" in record.message
+
+
+@pytest.mark.asyncio
+async def test_updates_logs_caller_and_values(
+    itc: ITC, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    itc.set("key", 1)
+    caplog.clear()
+
+    gen = itc.updates("key")
+    assert await anext(gen) == 1
+    await gen.aclose()
+
+    assert any(
+        "updates('key') subscribing from" in r.message
+        and "test_updates_logs_caller_and_values" in r.message
+        for r in caplog.records
+    )
+    assert any(
+        "updates('key') yielding initial 1 to" in r.message for r in caplog.records
+    )
+
+
+@pytest.mark.asyncio
+async def test_updates_logs_subsequent_values(
+    itc: ITC, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    gen = itc.updates("key", yield_immediately=False)
+    pending = asyncio.ensure_future(anext(gen))
+    await asyncio.sleep(0)
+    itc.set("key", 42)
+    assert await asyncio.wait_for(pending, 1) == 42
+    await gen.aclose()
+
+    assert any("updates('key') yielding 42 to" in r.message for r in caplog.records)
+
+
+def test_caller_defaults_to_direct_caller() -> None:
+    from click_async_plugins.itc import _caller
+
+    def helper() -> str:
+        return _caller()
+
+    assert helper().endswith(" in helper")
+    assert "test_itc.py" in helper()
+
+
+def test_caller_depth_walks_up_stack() -> None:
+    from click_async_plugins.itc import _caller
+
+    def inner() -> str:
+        return _caller(2)
+
+    def outer() -> str:
+        return inner()
+
+    assert outer().endswith(" in outer")
+
+
+def test_caller_zero_depth_raises() -> None:
+    from click_async_plugins.itc import _caller
+
+    with pytest.raises(ValueError, match="depth must be >= 1"):
+        _caller(0)
+
+
+def test_caller_negative_depth_raises() -> None:
+    from click_async_plugins.itc import _caller
+
+    with pytest.raises(ValueError, match="depth must be >= 1"):
+        _caller(-1)
+
+
+def test_caller_depth_beyond_stack_returns_unknown() -> None:
+    from click_async_plugins.itc import _caller
+
+    assert _caller(10_000) == "<unknown>"
+
+
+def test_get_does_not_log_when_debug_disabled(
+    itc: ITC, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.INFO)
+    itc.get("key")
+    assert not any(r.message.startswith("get(") for r in caplog.records)

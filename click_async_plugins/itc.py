@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import logging
 import time
 from collections import defaultdict
@@ -6,6 +7,31 @@ from collections.abc import AsyncGenerator
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def _caller(depth: int = 1) -> str:
+    """Return a description of a calling frame, ``depth`` frames up.
+
+    ``depth`` counts frames starting at this helper, so ``depth=1`` (the
+    default) reports the direct caller of this helper, ``depth=2`` the frame
+    above that, and so on. Returns a ``file:lineno in function`` string, or
+    a fallback marker if the frame cannot be determined.
+
+    Raises:
+        ValueError: If ``depth`` is less than 1.
+    """
+    if depth < 1:
+        raise ValueError(f"depth must be >= 1, got {depth}")
+
+    frame = inspect.currentframe()
+    try:
+        for _ in range(depth):
+            frame = frame.f_back if frame is not None else None
+        if frame is None:
+            return "<unknown>"
+        return f"{frame.f_code.co_filename}:{frame.f_lineno} in {frame.f_code.co_name}"
+    finally:
+        del frame
 
 
 class ITC:
@@ -25,13 +51,20 @@ class ITC:
         return f"{ret}{'    ' if i > 0 else ''})"
 
     def set(self, key: str, obj: Any) -> None:
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"set('{key}', {obj!r}) called from {_caller(2)}")
         self._objects[key] = obj
         self.fire(key)
 
     def get(self, key: str, default: Any = None) -> Any:
-        return self._objects.get(key, default)
+        value = self._objects.get(key, default)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"get('{key}') -> {value!r} called from {_caller(2)}")
+        return value
 
     def fire(self, key: str) -> None:
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"fire('{key}') called from {_caller(2)}")
         logger.debug(f"Notifying subscribers of update to '{key}'…")
         for event in self._events.get(key) or []:
             event.set()
@@ -47,6 +80,9 @@ class ITC:
     ) -> AsyncGenerator[Any | None]:
         at_most_every = 0 if at_most_every is None else at_most_every
 
+        caller = _caller(2) if logger.isEnabledFor(logging.DEBUG) else ""
+        logger.debug(f"updates('{key}') subscribing from {caller}")
+
         if timeout is not None and timeout <= 0:
             logger.warning("Updates timeout <= 0, disabling timeout…")
             timeout = None
@@ -60,7 +96,12 @@ class ITC:
 
         try:
             if yield_immediately:
-                yield self._objects.get(key, yield_for_no_value)
+                value = self._objects.get(key, yield_for_no_value)
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(
+                        f"updates('{key}') yielding initial {value!r} to {caller}"
+                    )
+                yield value
 
             timestamp = 0.0
             while True:
@@ -81,6 +122,8 @@ class ITC:
                 # instead of being wiped out.
                 event.clear()
                 value = self._objects.get(key, yield_for_no_value)
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"updates('{key}') yielding {value!r} to {caller}")
                 yield value
                 timestamp = time.monotonic()
 
